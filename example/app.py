@@ -8,7 +8,8 @@ from tweepy import OAuthHandler
 from tweepy import Stream
 import json
 from html.parser import HTMLParser
-
+from multiprocessing import Queue
+from textblob import TextBlob
 
 consumer_token = 'vwMzLzLxKmRwygyCarHEBTdgd'
 consumer_secret = 'e4wjTf5K20nBXDoJPtMFNoSuGfn79dcqoKd8QVZsmPOe450b4S'
@@ -19,28 +20,13 @@ access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
 async_mode = None
-
+tweetQueue = Queue()
 
 
 class StdOutListener(StreamListener):
 
     def on_status(self, status):
-        location = False
-        output = ""
-        if status.user.location:
-            output = (status.user.location)
-        elif status.coordinates:
-            output = 'coordinates: ', status.coordinates
-        elif status.place:
-            output = 'place: ', status.place.full_name
-        else:
-            return
-
-        socketio.emit('tweet', {'data': output}, namespace='/test')
-
-
-
-
+        filter(status)
 
 
 app = Flask(__name__)
@@ -63,10 +49,29 @@ def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
 
+def filter(status):
+    output = ""
+    if status.user.location:
+        output = (status.user.location)
+    elif status.coordinates:
+        output = 'coordinates: ', status.coordinates
+    elif status.place:
+        output = 'place: ', status.place.full_name
+    else:
+        return
+
+    text = TextBlob(status.text)
+    
+    print(status.text)
+    print(text.sentiment.polarity)
+    socketio.emit('tweet', {'data': output}, namespace='/test')
+
+
 @socketio.on('new_filter', namespace='/test')
 def change_filter(message):
     for stream in streams:
         stream.disconnect()
+    tweetQueue.empty()
     fil = message['data']
     myStream = Stream(auth, l)
     streams.append(myStream)
@@ -76,6 +81,7 @@ def change_filter(message):
             break
         except KeyboardInterrupt:
           continue
+
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread
