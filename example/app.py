@@ -7,7 +7,7 @@ from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
 import json
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 
 consumer_token = 'vwMzLzLxKmRwygyCarHEBTdgd'
@@ -20,22 +20,6 @@ access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 # the best option based on installed packages.
 async_mode = None
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode=async_mode)
-thread = None
-thread_lock = Lock()
-
-
-def background_thread():
-    """Example of how to send server generated events to clients."""
-    count = 0
-    while True:
-        socketio.sleep(10)
-        count += 1
-        # socketio.emit('my_response',
-        #               {'data': 'Server generated event', 'count': count},
-        #               namespace='/test')
 
 
 class StdOutListener(StreamListener):
@@ -56,40 +40,42 @@ class StdOutListener(StreamListener):
 
 
 
+
+
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
+l = StdOutListener()
+auth = OAuthHandler(consumer_token, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+streams = []
+
+
+def background_thread():
+    while True:
+        socketio.sleep(10)
+
 @app.route('/')
 def index():
-    l = StdOutListener()
-    auth = OAuthHandler(consumer_token, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-    myStream = Stream(auth, l)
-    myStream.filter(track=['the', 'The'], async=True)
     return render_template('index.html', async_mode=socketio.async_mode)
 
 
-@socketio.on('my_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
-
-
-@socketio.on('my_broadcast_event', namespace='/test')
-def test_broadcast_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         broadcast=True)
-
-
-
-@socketio.on('disconnect_request', namespace='/test')
-def disconnect_request():
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']})
-    disconnect()
-
-
+@socketio.on('new_filter', namespace='/test')
+def change_filter(message):
+    for stream in streams:
+        stream.disconnect()
+    fil = message['data']
+    myStream = Stream(auth, l)
+    streams.append(myStream)
+    while True:
+        try:
+            myStream.filter(track=[fil], async=True)
+            break
+        except KeyboardInterrupt:
+          continue
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread
