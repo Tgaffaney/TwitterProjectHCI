@@ -3,6 +3,17 @@ from threading import Lock
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
+from tweepy.streaming import StreamListener
+from tweepy import OAuthHandler
+from tweepy import Stream
+import json
+from HTMLParser import HTMLParser
+
+
+consumer_token = 'vwMzLzLxKmRwygyCarHEBTdgd'
+consumer_secret = 'e4wjTf5K20nBXDoJPtMFNoSuGfn79dcqoKd8QVZsmPOe450b4S'
+access_token = '1177565569-gvXPi5G3uzIYF2GaBMTZOsYA8lj5ZQKf9j0jdtg'
+access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -27,8 +38,31 @@ def background_thread():
         #               namespace='/test')
 
 
+class StdOutListener(StreamListener):
+
+    def on_status(self, status):
+        location = False
+        output = ""
+        if status.user.location:
+            output = (status.user.location)
+        elif status.coordinates:
+            output = 'coordinates: ', status.coordinates
+        elif status.place:
+            output = 'place: ', status.place.full_name
+        else:
+            return
+
+        socketio.emit('tweet', {'data': output}, namespace='/test')
+
+
+
 @app.route('/')
 def index():
+    l = StdOutListener()
+    auth = OAuthHandler(consumer_token, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    myStream = Stream(auth, l)
+    myStream.filter(track=['the', 'The'], async=True)
     return render_template('index.html', async_mode=socketio.async_mode)
 
 
