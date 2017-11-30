@@ -11,24 +11,15 @@ from html.parser import HTMLParser
 from multiprocessing import Queue
 from textblob import TextBlob
 
+
+# Tokens necessary for connection to Twitter API
 consumer_token = 'vwMzLzLxKmRwygyCarHEBTdgd'
 consumer_secret = 'e4wjTf5K20nBXDoJPtMFNoSuGfn79dcqoKd8QVZsmPOe450b4S'
 access_token = '1177565569-gvXPi5G3uzIYF2GaBMTZOsYA8lj5ZQKf9j0jdtg'
 access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 
-# Set this variable to "threading", "eventlet" or "gevent" to test the
-# different async modes, or leave it set to None for the application to choose
-# the best option based on installed packages.
+# Assorted Variables
 async_mode = None
-tweetQueue = Queue()
-
-
-class StdOutListener(StreamListener):
-
-    def on_status(self, status):
-        filter(status)
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
@@ -39,16 +30,48 @@ auth = OAuthHandler(consumer_token, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 streams = []
 
+# Class used for listening for incoming tweets and filtering them
+class StdOutListener(StreamListener):
 
+    def on_status(self, status):
+       filter(status)
+
+# Starts background thread, allows updating of index.html
 def background_thread():
     while True:
         socketio.sleep(10)
 
+# Creates html template at base directory
 @app.route('/')
 def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
+# Connects server websocket to client websocket
+@socketio.on('connect', namespace='/stream')
+def connect():
+    global thread
+    print('connect')
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(target=background_thread)
+    emit('my_response', {'data': 'Connected', 'count': 0})
 
+# Disconnects websockets on clients leaving page, ends streams on server
+@socketio.on('dis', namespace='/stream')
+def disconnect():
+    for stream in streams:
+        stream.disconnect()
+        del stream
+
+    del streams[:]
+    print('disconnected ', request.sid)
+
+# Starts socketio
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
+
+# Filters tweets so that only tweets 
+# with location data are passed on to the client, also passes a text sentiment score
 def filter(status):
     output = ""
     if status.user.location:
@@ -62,35 +85,22 @@ def filter(status):
 
     text = TextBlob(status.text)
     
-    print(status.text)
-    print(text.sentiment.polarity)
-    socketio.emit('tweet', {'data': output, 'sentiment': text.sentiment.polarity}, namespace='/test')
+    # print(status.text)
+    # print(text.sentiment.polarity)
+    socketio.emit('tweet', {'data': output, 'sentiment': text.sentiment.polarity}, namespace='/stream')
 
-
-@socketio.on('new_filter', namespace='/test')
+# Called when the client changes the filtering text for tweets
+# Halts and deletes all of the streams currently running
+@socketio.on('new_filter', namespace='/stream')
 def change_filter(message):
     for stream in streams:
         stream.disconnect()
+        del stream
+        print('ended stream')
+
+
+    del streams[:]
     fil = message['data']
     myStream = Stream(auth, l)
     streams.append(myStream)
     myStream.filter(track=[fil], async=True)
-
-@socketio.on('connect', namespace='/test')
-def test_connect():
-    global thread
-    with thread_lock:
-        if thread is None:
-            thread = socketio.start_background_task(target=background_thread)
-    emit('my_response', {'data': 'Connected', 'count': 0})
-
-
-@socketio.on('disconnect')
-def test_disconnect():
-    for stream in streams:
-        stream.disconnect()
-    print('Client disconnected', request.sid)
-
-
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
