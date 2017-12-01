@@ -10,6 +10,7 @@ import json
 from html.parser import HTMLParser
 from multiprocessing import Queue
 from textblob import TextBlob
+import re
 
 consumer_token = 'vwMzLzLxKmRwygyCarHEBTdgd'
 consumer_secret = 'e4wjTf5K20nBXDoJPtMFNoSuGfn79dcqoKd8QVZsmPOe450b4S'
@@ -20,6 +21,66 @@ access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
 async_mode = None
+
+us_state_abbrev = {
+    'ALABAMA': 'AL',
+    'ALASKA': 'AK',
+    'ARIZONA': 'AZ',
+    'ARKANSAS': 'AR',
+    'CALIFORNIA': 'CA',
+    'COLORADO': 'CO',
+    'CONNECTICUT': 'CT',
+    'DELEWARE': 'DE',
+    'FLORIDA': 'FL',
+    'GEORGIA': 'GA',
+    'HAWAII': 'HI',
+    'IDAHO': 'ID',
+    'ILLINOIS': 'IL',
+    'INDIANA': 'IN',
+    'IOWA': 'IA',
+    'KANSAS': 'KS',
+    'KENTUCKY': 'KY',
+    'LOUISIANA': 'LA',
+    'MAINE': 'ME',
+    'MARYLAND': 'MD',
+    'MASSACHUSETTS': 'MA',
+    'MICHIGAN': 'MI',
+    'MINNESOTA': 'MN',
+    'MISSISSIPPI': 'MS',
+    'MISSOURI': 'MO',
+    'MONTANA': 'MT',
+    'NEBRASKA': 'NE',
+    'NEVADA': 'NV',
+    'NEW HAMPSHIRE': 'NH',
+    'NEW JERSEY': 'NJ',
+    'NEW MEXICO': 'NM',
+    'NEW YORK': 'NY',
+    'NORTH CAROLINA': 'NC',
+    'NORTH DAKOTA': 'ND',
+    'OHIO': 'OH',
+    'OKLAHOMA': 'OK',
+    'OREGON': 'OR',
+    'PENNSYLVANIA': 'PA',
+    'RHODE ISLAND': 'RI',
+    'SOUTH CAROLINA': 'SC',
+    'SOUTH DAKOTA': 'SD',
+    'TENNESSEE': 'TN',
+    'TEXAS': 'TX',
+    'UTAH': 'UT',
+    'VERMONT': 'VT',
+    'VIRGINIA': 'VA',
+    'WASHINGTON': 'WA',
+    'WEST VIRGINIA': 'WV',
+    'WISCONSIN': 'WI',
+    'WYOMING': 'WY',
+}
+
+
+states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
+          "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+          "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
+          "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
 
 class StdOutListener(StreamListener):
 
@@ -60,10 +121,23 @@ def filter(status):
         return
 
     text = TextBlob(status.text)
-    
+    if isinstance(output, str):
+        output.upper()
+        # vals = output.split(',')
+        vals = re.findall(r'\s|,|[^,\s]+', output)
+        for val in vals:
+                if val in us_state_abbrev:
+                    socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get(val), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+                elif val in states:
+                    socketio.emit('tweet', {'data': 'US-' + val, 'sentiment': text.sentiment.polarity}, namespace='/stream')
+                # else:
+                #     for var in sp:
+                #         if var in us_state_abbrev:
+                #             print(var)
+                #             socketio.emit('tweet', {'data': 'US-' + var, 'sentiment': text.sentiment.polarity}, namespace='/stream')
+
     # print(status.text)
     # print(text.sentiment.polarity)
-    socketio.emit('tweet', {'data': output, 'sentiment': text.sentiment.polarity}, namespace='/stream')
 
 
 @socketio.on('new_filter', namespace='/stream')
