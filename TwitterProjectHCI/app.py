@@ -119,22 +119,45 @@ def filter(status):
         output = 'place: ', status.place.full_name
     else:
         return
-
     text = TextBlob(status.text)
+
+
+    #print(output)
     if isinstance(output, str):
         output.upper()
         # vals = output.split(',')
-        vals = re.findall(r'\s|,|[^,\s]+', output)
-        for val in vals:
+        if "New Hampshire" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NEW HAMPSHIRE"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "New Jersey" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NEW JERSEY"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "New York" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NEW YORK"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "New Mexico" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NEW MEXICO"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "North Carolina" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NORTH CAROLINA"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "North Dakota" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NORTH DAKOTA"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "Rhode Island" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("RHODE ISLAND"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "South Carolina" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("SOUTH CAROLINA"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "South Dakota" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("SOUTH DAKOTA"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        elif "West Virginia" in output:
+            socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("WEST VIRGINIA"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
+        else:
+            vals = re.findall(r'\s|,|[^,\s]+', output)
+            for val in vals:
                 if val in us_state_abbrev:
                     socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get(val), 'sentiment': text.sentiment.polarity}, namespace='/stream')
                 elif val in states:
                     socketio.emit('tweet', {'data': 'US-' + val, 'sentiment': text.sentiment.polarity}, namespace='/stream')
                 # else:
-                #     for var in sp:
-                #         if var in us_state_abbrev:
-                #             print(var)
-                #             socketio.emit('tweet', {'data': 'US-' + var, 'sentiment': text.sentiment.polarity}, namespace='/stream')
+                # for var in sp:
+                #     if var in us_state_abbrev:
+                #         print(var)
+                #         socketio.emit('tweet', {'data': 'US-' + var, 'sentiment': text.sentiment.polarity}, namespace='/stream')
 
     # print(status.text)
     # print(text.sentiment.polarity)
