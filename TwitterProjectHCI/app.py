@@ -17,6 +17,7 @@ consumer_secret = 'e4wjTf5K20nBXDoJPtMFNoSuGfn79dcqoKd8QVZsmPOe450b4S'
 access_token = '1177565569-gvXPi5G3uzIYF2GaBMTZOsYA8lj5ZQKf9j0jdtg'
 access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 
+
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -176,6 +177,7 @@ def change_filter(message):
     myStream = Stream(auth, l)
     streams.append(myStream)
     myStream.filter(track=[fil], async=True)
+    pausedStreamFilter = message['data']
 
 @socketio.on('connect', namespace='/stream')
 def connect():
@@ -185,6 +187,7 @@ def connect():
         if thread is None:
             thread = socketio.start_background_task(target=background_thread)
     emit('my_response', {'data': 'Connected', 'count': 0})
+
 
 
 @socketio.on('dis', namespace='/stream')

@@ -394,25 +394,77 @@
             map.write("mapdiv");
         });
 
+        function stateSentimentScores(){
+            this.pos = 0;
+            this.neg = 0;
+            
+
+            function addPos(){
+                this.pos++;
+            }
+
+            function addNeg(){
+                this.neg++;
+            }
+
+            function getPos(){
+                return this.pos;
+            }
+
+            function getNeg(){
+                return this.neg;
+            }
+
+            this.addPos = addPos;
+            this.addNeg = addNeg;
+            this.getPos = getPos;
+            this.getNeg = getNeg;
+        }
+
         sentimentScores = [];
         for(i = 0; i < 50; i++){
-            sentimentScores[i] = 0;
+            sentimentScores[i] = new stateSentimentScores();
         }
+
+        updateMap = true;
 
 		function addToState(tweet){
 			var areaArray = map.dataProvider.areas;
 			for(var x = 0; x < areaArray.length; x++){
 				if(areaArray[x].id == tweet.data){
                     areaArray[x].value += 1;
-                    if(parseFloat(tweet.sentiment) != 0){
-                        sentimentScores[x] = (sentimentScores[x] + parseFloat(tweet.sentiment)) / areaArray[x].value;
+                    if(parseFloat(tweet.sentiment) > 0){
+                        sentimentScores[x].addPos();
+                    } else if(parseFloat(tweet.sentiment) < 0){
+                        sentimentScores[x].addNeg();
                     }
-                    areaArray[x].description = sentimentScores[x];
+
+                    if(sentimentScores[x].pos > sentimentScores[x].neg){
+                        if((sentimentScores[x].pos / sentimentScores[x].neg) > 2){
+                            areaArray[x].description = "Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        } else if((sentimentScores[x].pos / sentimentScores[x].neg) > 1.5){
+                            areaArray[x].description = "Somewhat Positive: " + (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }else{
+                            areaArray[x].description = "Slightly Positive: " + (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                    }else if(sentimentScores[x].pos < sentimentScores[x].neg){
+                        if((sentimentScores[x].neg / sentimentScores[x].pos) > 2){
+                            areaArray[x].description = "Negative: " + (sentimentScores[x].neg / sentimentScores[x].pos);
+                        } else if((sentimentScores[x].neg / sentimentScores[x].pos) > 1.5){
+                            areaArray[x].description = "Somewhat Negative: " + (sentimentScores[x].pos / sentimentScores[x].neg) ;
+                        }else{
+                            areaArray[x].description = "Slightly Negative: " + (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }                    
+                    }else{
+                        areaArray[x].description = "Neutral";
+                    }
                     tweetCount++;
                     document.getElementById("tweets").innerHTML = tweetCount;
 				}
 			}
-			map.validateData();
+            if(updateMap){
+                map.validateData();
+            }
 		}
 
 
@@ -424,7 +476,20 @@
 		    }
 		  }
 		}
+        function clearMap(){
+            var areaArray = map.dataProvider.areas;
+            updateMap = true;
+            tweetCount = 0;
+            for(i = 0; i < 50; i++){
+                sentimentScores[i] = new stateSentimentScores();
+            }
+            for(var x = 0; x < areaArray.length; x++){
+                areaArray[x].value = 0;
+                areaArray[x].description = "Neutral";
+            }
 
+            map.validateData();
+        }
         var socket;
 
         $(document).ready(function() {
@@ -461,6 +526,27 @@
                 $("#log").html("");
                 return false;
             });
+
+            $('form#emit').submit(function(event) {
+                clearMap();
+                socket.emit('new_filter', {data: $('#emit_data').val()});
+                $("#log").html("");
+                return false;
+            });
+
+            $('#pause').click(function(){
+                // socket.emit('pause');
+                // $("#log").html("PAUSED");
+                updateMap = false;
+                return false;
+            })
+
+            $('#resume').click(function(){
+                // socket.emit('resume');
+                // $("#log").html("Resume");
+                updateMap = true;
+                return false;
+            })
         });
         function disconnect(){
             socket.emit('dis');
@@ -482,6 +568,9 @@
         <input type="text" name="emit_data" id="emit_data" placeholder="Message">
         <input type="submit" value="Submit">
     </form>
+    <button type="button" id="pause">Pause</button>
+    <button type="button" id="resume">Resume</button>
+    
     <div id="mapdiv" style="width: 100%; background-color:#fff; height: 500px;"></div>
     
     <h2>Locations:</h2>
