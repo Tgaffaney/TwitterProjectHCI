@@ -437,11 +437,11 @@
             map.dataProvider = dataProvider;
 
             var valueLegend = new AmCharts.ValueLegend();
-            valueLegend.right = 10;
-            valueLegend.minValue = "Less Tweets";
-            valueLegend.maxValue = "More Tweets";
-            valueLegend.showAsGradient = true;
-            map.valueLegend = valueLegend;
+            // valueLegend.right = 10;
+            // valueLegend.minValue = "Less Tweets";
+            // valueLegend.maxValue = "More Tweets";
+            // valueLegend.showAsGradient = true;
+            // map.valueLegend = valueLegend;
             map.write("mapdiv");
         });
 
@@ -566,7 +566,7 @@
                     }
 
                     tweetCount++;
-                    document.getElementById("tweets").innerHTML = tweetCount;
+                    document.getElementById("tweets").innerHTML = "Tweet Count: " + tweetCount;
                 }
             }
             if(updateMap){
@@ -703,6 +703,7 @@
 </head>
 <body>
     <div class="container">
+        <a href="/">View Popularity Map</a>
         <h2>Tweet Sentiment by Location</h2>
         <form id="emit" method="POST" action='#'>
             <input id="emit_data" type="text" spellcheck="true" placeholder="Search.." maxlength="140"/>
@@ -710,7 +711,7 @@
             <button type="button" class="btn btn-primary" id="pause">Pause</button>
             <button type="button" class="btn btn-primary" id="resume">Resume</button>
             <br/>
-            <div style="color:white;" id="tweets"></div>
+            <div style="color:navy;" id="tweets"></div>
         </form>
         
     <div id="mapdiv" style="width: 100%; height: 500px;"></div>

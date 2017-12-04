@@ -442,19 +442,19 @@
 
                     if(sentimentScores[x].pos > sentimentScores[x].neg){
                         if((sentimentScores[x].pos / sentimentScores[x].neg) > 2){
-                            areaArray[x].description = "Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                            areaArray[x].description = "Positive";
                         } else if((sentimentScores[x].pos / sentimentScores[x].neg) > 1.5){
-                            areaArray[x].description = "Somewhat Positive: " + (sentimentScores[x].pos / sentimentScores[x].neg);
+                            areaArray[x].description = "Somewhat Positive";
                         }else{
-                            areaArray[x].description = "Slightly Positive: " + (sentimentScores[x].pos / sentimentScores[x].neg);
+                            areaArray[x].description = "Slightly Positive";
                         }
                     }else if(sentimentScores[x].pos < sentimentScores[x].neg){
                         if((sentimentScores[x].neg / sentimentScores[x].pos) > 2){
-                            areaArray[x].description = "Negative: " + (sentimentScores[x].neg / sentimentScores[x].pos);
+                            areaArray[x].description = "Negative";
                         } else if((sentimentScores[x].neg / sentimentScores[x].pos) > 1.5){
-                            areaArray[x].description = "Somewhat Negative: " + (sentimentScores[x].pos / sentimentScores[x].neg) ;
+                            areaArray[x].description = "Somewhat Negative";
                         }else{
-                            areaArray[x].description = "Slightly Negative: " + (sentimentScores[x].pos / sentimentScores[x].neg);
+                            areaArray[x].description = "Slightly Negative";
                         }                    
                     }else{
                         areaArray[x].description = "Neutral";
@@ -583,6 +583,7 @@
 </head>
 <body>
         <div class="container">
+            <a href="/sentiment">View Sentiment Map</a>
             <h1 >Tweet Popularity by Location</h1>
             <form id="emit" method="POST" action='#'>
                 <input id="emit_data" type="text" spellcheck="true" placeholder="Search.." maxlength="140"/>
@@ -590,10 +591,9 @@
                 <button type="button" class="btn btn-primary" id="pause">Pause</button>
                 <button type="button" class="btn btn-primary" id="resume">Resume</button>
                 <br/>
-                <div style="color:white;" id="tweets"></div>
+                <div style="color:navy;" id="tweets"></div>
             </form>
-        
-        <div id="mapdiv" style="width: 100%; height: 500px;"></div>
+            <div id="mapdiv" style="width: 100%; height: 500px;"></div>
         </div>
     </body>
 </html>
