@@ -533,42 +533,43 @@
                         sentimentScores[x].addNeg();
                     }
                     var sv = checkSentiment(tweet.data);
+                    if(updateMap){
+                        if( sv == 4 ){
+                            areaArray[x].color = "#d9d9d9";
+                            areaArray[x].description = "Neutral"
+                        }
+                        else if( sv == 5 ){
+                            areaArray[x].color = "#ccffcc";
+                            areaArray[x].description = "Slightly Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                        else if( sv == 6 ){
+                            areaArray[x].color = "#33ff33";
+                            areaArray[x].description = "Somewhat Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                        else if( sv == 7 ){
+                            areaArray[x].color = "#009900";
+                            areaArray[x].description = "Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                        else if( sv == 3 ){
+                            areaArray[x].color = "#ffb3b3";
+                            areaArray[x].description = "Slightlt Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                        else if( sv == 2 ){
+                            areaArray.color = "#ff4d4d";
+                            areaArray[x].description = "Somewhat Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                        else if( sv == 1 ){
+                            areaArray.color = "#cc0000";
+                            areaArray[x].description = "Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                        }
+                    }
 
-                    if( sv == 4 ){
-                        areaArray[x].color = "#d9d9d9";
-                        areaArray[x].description = "Neutral"
-                    }
-                    else if( sv == 5 ){
-                        areaArray[x].color = "#ccffcc";
-                        areaArray[x].description = "Slightly Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
-                    }
-                    else if( sv == 6 ){
-                        areaArray[x].color = "#33ff33";
-                        areaArray[x].description = "Somewhat Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
-                    }
-                    else if( sv == 7 ){
-                        areaArray[x].color = "#009900";
-                        areaArray[x].description = "Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
-                    }
-                    else if( sv == 3 ){
-                        areaArray[x].color = "#ffb3b3";
-                        areaArray[x].description = "Slightlt Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
-                    }
-                    else if( sv == 2 ){
-                        areaArray.color = "#ff4d4d";
-                        areaArray[x].description = "Somewhat Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
-                    }
-                    else if( sv == 1 ){
-                        areaArray.color = "#cc0000";
-                        areaArray[x].description = "Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
-                    }
                     tweetCount++;
                     document.getElementById("tweets").innerHTML = tweetCount;
                 }
             }
-            if(updateMap){
-                map.validateData();
-            }
+            map.validateData();
+        
         }
 
 		function sleep(milliseconds) {
@@ -581,15 +582,8 @@
 		}
 
         var socket;
-        $('#pause').click(function(){
-            updateMap = false;
-            return false;
-        })
 
-        $('#resume').click(function(){
-            updateMap = true;
-            return false;
-        })
+
 
 
         $(document).ready(function() {
@@ -614,7 +608,6 @@
 
             socket.on('tweet', function(msg){
                 addSentiment(msg);
-                $('#log').append('<br>' + $('<div/>').text('Location: ' + msg.data + ' - Sentiment: ' + msg.sentiment).html());
             });
 
 
@@ -623,9 +616,18 @@
             // variety of ways
             $('form#emit').submit(function(event) {
                 socket.emit('new_filter', {data: $('#emit_data').val()});
-                $("#log").html("");
                 return false;
             });
+
+            $('#pause').click(function(){
+            updateMap = false;
+                return false;
+            })
+
+            $('#resume').click(function(){
+                updateMap = true;
+                return false;
+            })
         });
         function disconnect(){
             socket.emit('dis');
@@ -665,9 +667,5 @@
         <div style="color:white;" id="tweets"></div>
     </form>
     <div id="mapdiv" style="width: 100%; background-color:#fff; height: 500px;"></div>
-    
-    <h2>Locations:</h2>
-    <div id="log"></div>
-    <button type="button" onclick="testye()">YEET</button>
 </body>
 </html>
