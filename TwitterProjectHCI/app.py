@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# This is the backend of the Twitter Map Application
 from threading import Lock
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
@@ -11,17 +11,23 @@ from multiprocessing import Queue
 from textblob import TextBlob
 import re
 
+# Twitter listener class
+class StdOutListener(StreamListener):
+
+    def on_status(self, status):
+       filter(status)
+
+
+# Keys necessary for connection to Twitter
 consumer_token = 'vwMzLzLxKmRwygyCarHEBTdgd'
 consumer_secret = 'e4wjTf5K20nBXDoJPtMFNoSuGfn79dcqoKd8QVZsmPOe450b4S'
 access_token = '1177565569-gvXPi5G3uzIYF2GaBMTZOsYA8lj5ZQKf9j0jdtg'
 access_token_secret = 'MMNmTd1HvsuiqPqezL13OOE87CelrSc2JLjNL1yyxQRDt'
 
-
-# Set this variable to "threading", "eventlet" or "gevent" to test the
-# different async modes, or leave it set to None for the application to choose
-# the best option based on installed packages.
+# Assorted variables
 async_mode = None
 
+# State names for location mapping
 us_state_abbrev = {
     'ALABAMA': 'AL',
     'ALASKA': 'AK',
@@ -75,20 +81,15 @@ us_state_abbrev = {
     'WYOMING': 'WY',
 }
 
-
+# State initializations for location mapping
 states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
           "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
           "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
           "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
           "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
 
-class StdOutListener(StreamListener):
 
-    def on_status(self, status):
-       filter(status)
-
-
-
+# Assorted variables for websockets and twitter api streaming
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
@@ -100,18 +101,24 @@ auth.set_access_token(access_token, access_token_secret)
 streams = []
 
 
+# The background thread for the websocket process
 def background_thread():
     while True:
         socketio.sleep(10)
 
+# Creates the index page
 @app.route('/')
 def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
+# Creates the sentiment page
 @app.route('/sentiment')
 def sentiment():
     return render_template('sentiment.html',  async_mode=socketio.async_mode)
 
+# The function used for filtering out tweets that contain location information.
+# This function uses either the profile location, the gps location, or a location mentioned in the tweet body
+# It then determines the state named in the location and sends it to the javascript layer with the sentiment value provided by TextBlob
 def filter(status):
     output = ""
     if status.user.location:
@@ -156,6 +163,8 @@ def filter(status):
                     socketio.emit('tweet', {'data': 'US-' + val, 'sentiment': text.sentiment.polarity}, namespace='/stream')
 
 
+# Function called when a new filter is sent by the JavaScript layer
+# Also changes the filter text to upper case lower case and capitalized
 @socketio.on('new_filter', namespace='/stream')
 def change_filter(message):
     for stream in streams:
@@ -176,6 +185,7 @@ def change_filter(message):
     streams.append(myStream)
     myStream.filter(track=[upfil, downfil, fil], async=True)
 
+# Function called by Flask-Socketio when a connection is established
 @socketio.on('connect', namespace='/stream')
 def connect():
     global thread
@@ -186,7 +196,7 @@ def connect():
     emit('my_response', {'data': 'Connected', 'count': 0})
 
 
-
+# Function called by Flask-Socketio on a disconnect
 @socketio.on('dis', namespace='/stream')
 def disconnect():
     for stream in streams:
@@ -196,5 +206,6 @@ def disconnect():
     del streams[:]
     print('disconnected ', request.sid)
 
+# Function used to set the main application
 if __name__ == '__main__':
     socketio.run(app, debug=True)
