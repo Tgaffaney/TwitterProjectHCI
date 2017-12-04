@@ -17,6 +17,7 @@
 
         var tweetCount = 0;
 
+        //Function for creating sentiment map - Areas include an id of the state as well as a color aspect for displaying sentiment
         AmCharts.ready(function() {
             map = new AmCharts.AmMap();
             AmCharts.theme = AmCharts.themes.dark;
@@ -446,7 +447,7 @@
             // map.valueLegend = valueLegend;
             map.write("mapdiv");
         });
-
+            //Creating a way to store sentiment scores for each state - create add and get functions for sentiments
             function stateSentimentScores(){
             this.pos = 0;
             this.neg = 0;
@@ -481,22 +482,7 @@
             sentimentScores[i] = new stateSentimentScores();
         }
 
-		function addToState(tweet){
-			var areaArray = map.dataProvider.areas;
-			for(var x = 0; x < areaArray.length; x++){
-				if(areaArray[x].id == tweet.data){
-                    areaArray[x].value += 1;
-                    if(parseFloat(tweet.sentiment) != 0){
-                        sentimentScores[x] = (sentimentScores[x] + parseFloat(tweet.sentiment)) / areaArray[x].value;
-                    }
-                    areaArray[x].description = sentimentScores[x];
-                    tweetCount++;
-                    document.getElementById("tweets").innerHTML = tweetCount;
-				}
-			}
-			map.validateData();
-		}
-
+        //Function checks current sentiment of a state and returns certain int value depending on if its positive or negative sentiment
         function checkSentiment(state) {
             var areaArray = map.dataProvider.areas;
             var sentimentIndex;
@@ -525,6 +511,10 @@
             }
         }
 
+        //Each tweet is passed through this function from the web socket
+        //This function finds the correct state that the location is within
+        //the function then checks the sentiment score and tells wether it is positive or negative
+        //After this it checks if the map will need to be updated for color or description
         function addSentiment(tweet){
             var areaArray = map.dataProvider.areas;
             for(var x = 0; x < areaArray.length; x++){
@@ -576,6 +566,7 @@
             }
         }
 
+        //Setting up socket connections
         var socket;
         $(document).ready(function() {
             // Use a "/test" namespace.
@@ -627,6 +618,7 @@
             disconnect();
             return null;
         }
+        //Function that clears all data from the map
         function clearMap(){
             var areaArray = map.dataProvider.areas;
             updateMap = true;
