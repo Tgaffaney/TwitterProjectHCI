@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
+<!--Main HTML Template for the Webapp Client. Used by FLASK to generate html page, and interact with python server -->
 <html>
 <head>
     <title>Tweet Location by Popularity</title>
-
     <link rel="stylesheet" href="../static/ammap/ammap.css" type="text/css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     
@@ -13,16 +13,21 @@
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
     <script type="text/javascript" charset="utf-8">
         
+        //Map, sentiment, tweet, and socket variables
         var map;
         var sentimentScores = [];
         var tweetCount = 0;
         var updateMap = true;
+        var socket;
 
+        //Initializes sentiment score object values
         for(i = 0; i < 50; i++){
             sentimentScores[i] = new stateSentimentScores();
         }
-        
+
+        //Functions related to AmCharts interaction are located here
         AmCharts.ready(function() {
+            //Assorted AmMap variables
             map = new AmCharts.AmMap();
             AmCharts.theme = AmCharts.themes.light;
             map.zoomControl.homeButtonEnabled = false;
@@ -31,6 +36,7 @@
             map.dragMap = false;
             map.zoomOnDoubleClick = false;
             
+            //Variable that holds references to all states
             var dataProvider = {
                 mapVar: AmCharts.maps.usaLow,
 
@@ -388,11 +394,15 @@
                 }]
             };
 
+            //Remove map autozoom settings
             map.areasSettings = {
                 autoZoom: false
             };
+            
+            //Sets the data provider for the map
             map.dataProvider = dataProvider;
 
+            //Assorted variables used for the map
             var valueLegend = new AmCharts.ValueLegend();
             valueLegend.right = 10;
             valueLegend.minValue = "Less Tweets";
@@ -401,36 +411,40 @@
             map.write("mapdiv");
         });
 
+        //Object used to hold the sentiment scores
         function stateSentimentScores(){
             this.pos = 0;
             this.neg = 0;
-            
 
+            //Add positive tweet score
             function addPos(){
                 this.pos++;
             }
 
+            //Add negative tweet score
             function addNeg(){
                 this.neg++;
             }
 
+            //Returns the positive tweet score
             function getPos(){
                 return this.pos;
             }
 
+            //Returns the positive tweet score
             function getNeg(){
                 return this.neg;
             }
 
+            //Assigns functions and variables
             this.addPos = addPos;
             this.addNeg = addNeg;
             this.getPos = getPos;
             this.getNeg = getNeg;
         }
 
-
-
-
+        //Function used to add data from websocket to map
+        //Iterates through state values to compare the state names, then adds the sentiment polarity and the count of tweets for that state
 		function addToState(tweet){
 			var areaArray = map.dataProvider.areas;
 			for(var x = 0; x < areaArray.length; x++){
@@ -470,7 +484,7 @@
             }
 		}
 
-
+        //Clears map of all data, including tweet counts, sentiment polarity, and resets them to default
         function clearMap(){
             var areaArray = map.dataProvider.areas;
             updateMap = true;
@@ -486,37 +500,33 @@
             map.validateData();
         }
 
-        var socket;
+        //Called when the document is ready
         $(document).ready(function() {
+
+            //Sets focus
             $("#emit_data").focus();
-            // Use a "/test" namespace.
-            // An application can open a connection on multiple namespaces, and
-            // Socket.IO will multiplex all those connections on a single
-            // physical channel. If you don't care about multiple channels, you
-            // can set the namespace to an empty string.
+         
+            //Namespace used for Flask-SocketIO
             namespace = '/stream';
 
             // Connect to the Socket.IO server.
-            // The connection URL has the following format:
-            //     http[s]://<domain>:<port>[/<namespace>]
             socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
             // Event handler for new connections.
-            // The callback function is invoked when a connection with the
-            // server is established.
+            //Callback function used on the connection
             socket.on('connect', function() {
                 socket.emit('my_event', {data: 'I\'m connected!'});
             });
 
+            //Event handler for when a new tweet is passed by the python server
             socket.on('tweet', function(msg){
                 addToState(msg);
                 $('#log').append('<br>' + $('<div/>').text('Location: ' + msg.data + ' - Sentiment: ' + msg.sentiment).html());
             });
 
 
-            // Handlers for the different forms in the page.
-            // These accept data from the user and send it to the server in a
-            // variety of ways
+            //Event handler for when a new filter is submitted through the search box
+            //Sends an event to the python server to change the stream filter, and resets the map
             $('form#emit').submit(function(event) {
                 socket.emit('new_filter', {data: $('#emit_data').val()});
                 return false;
@@ -528,19 +538,24 @@
                 return false;
             });
 
+            //Called when the pause button is hit, stops the map from updating
             $('#pause').click(function(){
                 updateMap = false;
                 return false;
             })
 
+            //Called when the resume button is hit, starts the map updating again
             $('#resume').click(function(){
                 updateMap = true;
                 return false;
             })
         });
+
+        //Called to send a disconnect event to the python server
         function disconnect(){
             socket.emit('dis');
         }
+        //Called when the window closes, forcing the python server to disconnect the web sockets and cancel the twitter streams
         window.onbeforeunload = function() {
             disconnect();
             return null;

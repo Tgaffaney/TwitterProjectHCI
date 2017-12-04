@@ -131,7 +131,7 @@ def filter(status):
         return
     text = TextBlob(status.text)
 
-
+    # Proceeds to state selection if the location is a string
     if isinstance(output, str):
         output.upper()
         if "New Hampshire" in output:
