@@ -109,6 +109,9 @@ def background_thread():
 def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
+@app.route('/sentiment')
+def sentiment():
+    return render_template('sentiment.html',  async_mode=socketio.async_mode)
 
 def filter(status):
     output = ""
@@ -174,10 +177,15 @@ def change_filter(message):
 
     del streams[:]
     fil = message['data']
+    upfil = fil
+    upfil.upper()
+    capfil = fil
+    capfil.capitalize()
+    downfil = fil
+    downfil.lower()
     myStream = Stream(auth, l)
     streams.append(myStream)
-    myStream.filter(track=[fil], async=True)
-    pausedStreamFilter = message['data']
+    myStream.filter(track=[upfil, downfil, fil], async=True)
 
 @socketio.on('connect', namespace='/stream')
 def connect():

@@ -552,6 +552,7 @@
                     }
                     else if( sv == 3 ){
                         areaArray[x].color = "#ffb3b3";
+<<<<<<< HEAD
                         areaArray[x].description = "Slightlt Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
                     }
                     else if( sv == 2 ){
@@ -562,6 +563,12 @@
                         areaArray.color = "#cc0000";
                         areaArray[x].description = "Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
                     }
+=======
+                    else if( sv == 2 )
+                        areaArray[x].color = "#ff4d4d";
+                    else if( sv == 1 )
+                        areaArray[x].color = "#cc0000";
+>>>>>>> 56054db69252bb35264217de570284eb397fbffc
                     tweetCount++;
                     document.getElementById("tweets").innerHTML = tweetCount;
                 }
