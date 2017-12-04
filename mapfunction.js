@@ -1,6 +1,0 @@
-
-
-
-function getLocation( locString ){
-	
-}
