@@ -460,7 +460,7 @@
                         areaArray[x].description = "Neutral";
                     }
                     tweetCount++;
-                    document.getElementById("tweets").innerHTML = tweetCount;
+                    // document.getElementById("tweets").innerHTML = tweetCount;
 				}
 			}
             if(updateMap){
@@ -525,27 +525,21 @@
             // variety of ways
             $('form#emit').submit(function(event) {
                 socket.emit('new_filter', {data: $('#emit_data').val()});
-                $("#log").html("");
                 return false;
             });
 
             $('form#emit').submit(function(event) {
                 clearMap();
                 socket.emit('new_filter', {data: $('#emit_data').val()});
-                $("#log").html("");
                 return false;
             });
 
             $('#pause').click(function(){
-                // socket.emit('pause');
-                // $("#log").html("PAUSED");
                 updateMap = false;
                 return false;
             })
 
             $('#resume').click(function(){
-                // socket.emit('resume');
-                // $("#log").html("Resume");
                 updateMap = true;
                 return false;
             })
