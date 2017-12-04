@@ -656,11 +656,8 @@
     <style>
             body { 
                 margin:0;
-                background: #1DA1F2; /* For browsers that do not support gradients */
-                background: -webkit-linear-gradient(#1DA1F2,#129aed); /* For Safari 5.1 to 6.0 */
-                background: -o-linear-gradient(#1DA1F2,#129aed); /* For Opera 11.1 to 12.0 */
-                background: -moz-linear-gradient(#1DA1F2,#129aed); /* For Firefox 3.6 to 15 */
-                background: linear-gradient(#1DA1F2,#129aed); /* Standard syntax */
+                background: #fff; /* For browsers that do not support gradients */
+                
                 font-family: 'Roboto', sans-serif;
                 text-align:center;
             }
@@ -706,12 +703,12 @@
 </head>
 <body>
     <div class="container">
-        <img src="twitter.svg" width="50px"/>
+        <h2>Tweet Sentiment by Location</h2>
         <form id="emit" method="POST" action='#'>
             <input id="emit_data" type="text" spellcheck="true" placeholder="Search.." maxlength="140"/>
-            <button type="submit" class="btn btn-default">Submit</button>
-            <button type="button" class="btn btn-default" id="pause">Pause</button>
-            <button type="button" class="btn btn-default" id="resume">Resume</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" class="btn btn-primary" id="pause">Pause</button>
+            <button type="button" class="btn btn-primary" id="resume">Resume</button>
             <br/>
             <div style="color:white;" id="tweets"></div>
         </form>
