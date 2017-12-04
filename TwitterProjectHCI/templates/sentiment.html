@@ -534,20 +534,34 @@
                     }
                     var sv = checkSentiment(tweet.data);
 
-                    if( sv == 4 )
+                    if( sv == 4 ){
                         areaArray[x].color = "#d9d9d9";
-                    else if( sv == 5 )
+                        areaArray[x].description = "Neutral"
+                    }
+                    else if( sv == 5 ){
                         areaArray[x].color = "#ccffcc";
-                    else if( sv == 6 )
+                        areaArray[x].description = "Slightly Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                    }
+                    else if( sv == 6 ){
                         areaArray[x].color = "#33ff33";
-                    else if( sv == 7 )
+                        areaArray[x].description = "Somewhat Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                    }
+                    else if( sv == 7 ){
                         areaArray[x].color = "#009900";
-                    else if( sv == 3 )
+                        areaArray[x].description = "Positive: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                    }
+                    else if( sv == 3 ){
                         areaArray[x].color = "#ffb3b3";
-                    else if( sv == 2 )
-                        areaArray[x].color = "#ff4d4d";
-                    else if( sv == 1 )
-                        areaArray[x].color = "#cc0000";
+                        areaArray[x].description = "Slightlt Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                    }
+                    else if( sv == 2 ){
+                        areaArray.color = "#ff4d4d";
+                        areaArray[x].description = "Somewhat Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                    }
+                    else if( sv == 1 ){
+                        areaArray.color = "#cc0000";
+                        areaArray[x].description = "Negative: " +  (sentimentScores[x].pos / sentimentScores[x].neg);
+                    }
                     tweetCount++;
                     document.getElementById("tweets").innerHTML = tweetCount;
                 }
