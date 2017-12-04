@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 from threading import Lock
 from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, \
-    close_room, rooms, disconnect
+from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -126,10 +125,8 @@ def filter(status):
     text = TextBlob(status.text)
 
 
-    #print(output)
     if isinstance(output, str):
         output.upper()
-        # vals = output.split(',')
         if "New Hampshire" in output:
             socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get("NEW HAMPSHIRE"), 'sentiment': text.sentiment.polarity}, namespace='/stream')
         elif "New Jersey" in output:
@@ -157,14 +154,6 @@ def filter(status):
                     socketio.emit('tweet', {'data': 'US-' + us_state_abbrev.get(val), 'sentiment': text.sentiment.polarity}, namespace='/stream')
                 elif val in states:
                     socketio.emit('tweet', {'data': 'US-' + val, 'sentiment': text.sentiment.polarity}, namespace='/stream')
-                # else:
-                # for var in sp:
-                #     if var in us_state_abbrev:
-                #         print(var)
-                #         socketio.emit('tweet', {'data': 'US-' + var, 'sentiment': text.sentiment.polarity}, namespace='/stream')
-
-    # print(status.text)
-    # print(text.sentiment.polarity)
 
 
 @socketio.on('new_filter', namespace='/stream')
